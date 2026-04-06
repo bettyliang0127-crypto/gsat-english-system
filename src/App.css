@@ -206,29 +206,38 @@ body {
 
 /* 載入畫面專用容器：讓內容在 app-container 內絕對置中 */
 .loading-wrapper {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 600px; /* 保持與主容器一致的高度 */
+  min-height: 400px; /* 調整高度讓它在容器內置中 */
 }
 
-/* 橫向長方形載入條 */
+/* 調整後的長方形：保留深色、圓角與玻璃效果，但比例參考圖二 */
 .loading-rect {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.05); /* 極淡的白色背景 */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 20px 50px;
-  border-radius: 16px; /* 稍微圓角但不完全是圓形，符合長方形感 */
-  color: #38bdf8; /* 使用你標題的亮藍色 */
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  /* 核心長方形狀 */
+  width: 70%;               /* 寬度仿照圖二比例 */
+  max-width: 500px;
+  padding: 60px 40px;       /* 增加垂直內距，讓它看起來更像一個大方塊 */
   
-  /* 閃爍動畫 */
+  /* 視覺效果：保留你喜歡的部分 */
+  background: rgba(0, 0, 0, 0.25); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* 稍微加亮邊框，模仿圖二的框線感 */
+  border-radius: 24px;      /* 保留圓角 */
+  
+  /* 文字排版 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #38bdf8;           /* 保留亮藍色文字 */
+  font-size: 1.4rem;        /* 稍微放大文字 */
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-align: center;
+  
+  /* 保留你的脈動動畫，但讓它更細微 */
   animation: loadingPulse 2s infinite ease-in-out;
 }
 

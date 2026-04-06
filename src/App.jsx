@@ -170,7 +170,7 @@ const App = () => {
     // 當題目尚未載入時，顯示橫向長方形的載入提示
     return (
       <div className="app-container">
-        <div className="loading-container">
+        <div className="loading-wrapper">
           <div className="loading-rect">
             正在從題庫載入題目...
           </div>
