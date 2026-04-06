@@ -167,8 +167,17 @@ const App = () => {
   };
 
   if (questionLoading) {
-    return <div className="app-container"><h2 style={{textAlign: "center"}}>正在從題庫載入題目...</h2></div>;
-  }
+    // 當題目尚未載入時，顯示橫向長方形的載入提示
+    return (
+      <div className="app-container">
+        <div className="loading-container">
+          <div className="loading-rect">
+            正在從題庫載入題目...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentChinese = currentQuestion.Chinese || currentQuestion.chinese || currentQuestion.Question || "（無中文題目）";
 
