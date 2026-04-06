@@ -213,31 +213,35 @@ body {
   min-height: 400px; /* 調整高度讓它在容器內置中 */
 }
 
-/* 調整後的長方形：保留深色、圓角與玻璃效果，但比例參考圖二 */
+/* 調整後的橫向長方形載入條 */
 .loading-rect {
-  /* 核心長方形狀 */
-  width: 70%;               /* 寬度仿照圖二比例 */
-  max-width: 500px;
-  padding: 60px 40px;       /* 增加垂直內距，讓它看起來更像一個大方塊 */
+  /* 1. 強制文字不換行，確保呈現在同一排 */
+  white-space: nowrap; 
   
-  /* 視覺效果：保留你喜歡的部分 */
-  background: rgba(0, 0, 0, 0.25); 
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3); /* 稍微加亮邊框，模仿圖二的框線感 */
-  border-radius: 24px;      /* 保留圓角 */
+  /* 2. 寬度設定為根據內容自動延伸，或設定一個較寬的寬度 */
+  width: fit-content;
+  min-width: 400px; /* 確保它看起來是橫向長方形 */
   
-  /* 文字排版 */
+  /* 3. 調整內距：左右寬、上下窄 */
+  padding: 30px 60px; 
+  
+  /* 4. 保留你喜歡的視覺效果 */
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #38bdf8;           /* 保留亮藍色文字 */
-  font-size: 1.4rem;        /* 稍微放大文字 */
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px; /* 圓角 */
   
-  /* 保留你的脈動動畫，但讓它更細微 */
+  /* 文字樣式 */
+  color: #38bdf8;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  
+  /* 動畫效果 */
   animation: loadingPulse 2s infinite ease-in-out;
 }
 
