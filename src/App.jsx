@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
-const API_BASE = 'http://10.220.79.190:5000'; // 確保呼叫正確的 Flask 端口
+const API_BASE = 'https://learn-english-wa5d.onrender.com'; // 確保呼叫正確的 Flask 端口
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('Chaining');
