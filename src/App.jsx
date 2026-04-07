@@ -43,7 +43,7 @@ function App() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isSocraticLoading, setIsSocraticLoading] = useState(false);
-  const chatEndRef = useRef(null); 
+  const chatEndRef = useRef(null);
 
   const [masteryInput, setMasteryInput] = useState('');
   const [masteryData, setMasteryData] = useState(null);
@@ -88,7 +88,7 @@ function App() {
       // 偷藏一句提示，讓 AI 一開始就知道現在學生抽到什麼題目
       if (historyToSend.length > 0 && historyToSend[0].role === 'model') {
         historyToSend.unshift({
-          role: 'user', 
+          role: 'user',
           content: `老師好，我正在練習英文翻譯，今天的題目是：「${question}」。請用語境引導我。`
         });
       }
@@ -133,19 +133,19 @@ function App() {
         <header className="mb-10 text-center">
           <h1 className="text-4xl font-black text-slate-800 mb-2 leading-tight">學測英文翻譯之引導式學習系統</h1>
         </header>
-        
+
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <button onClick={() => {setMode('chaining'); setStep(1);}} 
+          <button onClick={() => { setMode('chaining'); setStep(1); }}
             className={`p-4 rounded-2xl border-2 transition-all ${mode === 'chaining' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-white bg-white hover:border-blue-200'}`}>
             <div className="font-bold text-blue-600">提示鏈模式</div>
             <div className="text-xs text-slate-400">任務拆解與結構引導</div>
           </button>
-          <button onClick={() => setMode('socratic')} 
+          <button onClick={() => setMode('socratic')}
             className={`p-4 rounded-2xl border-2 transition-all ${mode === 'socratic' ? 'border-emerald-500 bg-emerald-50 shadow-md' : 'border-white bg-white hover:border-emerald-200'}`}>
             <div className="font-bold text-emerald-600">蘇格拉底模式</div>
             <div className="text-xs text-slate-400">邏輯啟發與對話中介</div>
           </button>
-          <button onClick={() => setMode('mastery')} 
+          <button onClick={() => setMode('mastery')}
             className={`p-4 rounded-2xl border-2 transition-all ${mode === 'mastery' ? 'border-purple-500 bg-purple-50 shadow-md' : 'border-white bg-white hover:border-purple-200'}`}>
             <div className="font-bold text-purple-600">精熟學習模式</div>
             <div className="text-xs text-slate-400">3R 迴路與零錯誤挑戰</div>
@@ -166,7 +166,7 @@ function App() {
               {step === 1 && (
                 <div className="space-y-4">
                   <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
-                    <strong>Step 1: 識別句構</strong><br/>請先找出本句的「主詞」與「動詞」。
+                    <strong>Step 1: 識別句構</strong><br />請先找出本句的「主詞」與「動詞」。
                   </div>
                   <input type="text" placeholder="例如：想像和創意 / 是" className="w-full border-2 p-4 rounded-xl outline-none" />
                   <button onClick={() => setStep(2)} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700">下一步</button>
@@ -175,7 +175,7 @@ function App() {
               {step === 2 && (
                 <div className="space-y-4">
                   <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
-                    <strong>Step 2: 選擇詞彙</strong><br/>關鍵字：Imagination, Creativity, Driving force.
+                    <strong>Step 2: 選擇詞彙</strong><br />關鍵字：Imagination, Creativity, Driving force.
                   </div>
                   <button onClick={() => setStep(3)} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700">進入語法組合</button>
                 </div>
@@ -183,7 +183,7 @@ function App() {
               {step === 3 && (
                 <div className="space-y-4">
                   <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
-                    <strong>Step 3: 語法組合</strong><br/>請嘗試拼湊完整翻譯，注意文法一致。
+                    <strong>Step 3: 語法組合</strong><br />請嘗試拼湊完整翻譯，注意文法一致。
                   </div>
                   <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 p-4 rounded-xl outline-none" placeholder="在此輸入您的整句翻譯..." />
                   {chainingFeedback && <div className="bg-green-50 p-4 rounded-xl text-green-800 border border-green-200 text-sm"><strong>AI 建議：</strong>{chainingFeedback}</div>}
@@ -199,7 +199,7 @@ function App() {
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold shadow-sm ${msg.role === 'user' ? 'bg-emerald-500' : 'bg-slate-800 text-[10px]'}`}>
-                      {msg.role === 'user' ? '學' : '導師'}
+                      {msg.role === 'user' ? '學' : 'AI'}
                     </div>
                     <div className={`p-4 rounded-2xl shadow-sm border max-w-[80%] ${msg.role === 'user' ? 'bg-slate-100 text-slate-700 ml-auto' : 'bg-emerald-50 text-emerald-800 mr-auto'}`}>
                       <p className="text-sm">{msg.content}</p>
