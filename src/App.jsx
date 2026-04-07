@@ -5,6 +5,7 @@ const API_BASE = "https://learn-english-wa5d.onrender.com";
 
 function App() {
   const [mode, setMode] = useState('home');
+  // Chaining mode current step (1~4)
   const [step, setStep] = useState(1);
   const [masteryStatus, setMasteryStatus] = useState('Report');
 
@@ -15,11 +16,23 @@ function App() {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' && data.data.length > 0) {
+          // 隨機抽一題
           setCurrentQuestion(data.data[Math.floor(Math.random() * data.data.length)]);
         }
       })
       .catch(e => {
-        setCurrentQuestion({ Chinese: "人類的想像和創意是科技進步最大的驅動力。" });
+        // 如果抓不到，使用備援假資料 (包含試算表的新欄位模擬)
+        setCurrentQuestion({ 
+          Chinese: "人類的想像和創意是科技進步最大的驅動力。",
+          Step1_Question: "請問這句話的核心「主詞」與「動詞」結構為何？",
+          Step1_Options: "A. 科技進步 / 是; B. 想像和創意 / 是; C. 最大 / 驅動力",
+          Step1_Ans: "B",
+          Step2_Question: "這句話描述跨越時間的客觀事實，請問主要子句應該使用哪種時態？",
+          Step2_Options: "A. 未來式; B. 過去簡單式; C. 現在簡單式",
+          Step2_Ans: "C",
+          Step3_Template: "Human [blank] and [blank] are the largest [blank] of technological progress.",
+          Step3_Answers: "imagination;creativity;driving force"
+        });
         console.log("正在使用備援題目");
       });
   }, []);
@@ -49,15 +62,45 @@ function App() {
   const [masteryData, setMasteryData] = useState(null);
   const [isMasteryLoading, setIsMasteryLoading] = useState(false);
 
+  // --- 🌟 4階段提示鏈模式狀態 (資料庫解析) ---
+  const chainingData = {
+    step1Q: currentQuestion?.Step1_Question || "本句的主詞與動詞為何？",
+    step1Opt: currentQuestion?.Step1_Options ? currentQuestion.Step1_Options.split(';') : ["A. 現代科技 / 是", "B. 想像和創意 / 是", "C. 驅動力 / 是"],
+    step1Ans: currentQuestion?.Step1_Ans || "B",
+    
+    step2Q: currentQuestion?.Step2_Question || "這句話應該使用什麼時態？",
+    step2Opt: currentQuestion?.Step2_Options ? currentQuestion.Step2_Options.split(';') : ["A. 過去單純式", "B. 現在簡單式", "C. 現在完成式"],
+    step2Ans: currentQuestion?.Step2_Ans || "B",
+
+    step3Tpl: currentQuestion?.Step3_Template || "Human [blank] and [blank] are the largest [blank] of technological progress.",
+    step3Ans: currentQuestion?.Step3_Answers ? currentQuestion.Step3_Answers.split(';') : ["imagination", "creativity", "driving force"]
+  };
+
+  const [step1AnsCode, setStep1AnsCode] = useState('');
+  const [step2AnsCode, setStep2AnsCode] = useState('');
+  const [blankInputs, setBlankInputs] = useState([]);
+  const [step1Status, setStep1Status] = useState(''); // 'pass' or 'fail'
+  const [step2Status, setStep2Status] = useState('');
+  const [step3Status, setStep3Status] = useState('');
   const [chainingInput, setChainingInput] = useState('');
   const [chainingFeedback, setChainingFeedback] = useState('');
   const [isChainingLoading, setIsChainingLoading] = useState(false);
+
+  // 當題目切換 或 模式切換時，重置所有狀態
+  useEffect(() => {
+    setStep(1);
+    setStep1AnsCode(''); setStep1Status('');
+    setStep2AnsCode(''); setStep2Status('');
+    setBlankInputs([]); setStep3Status('');
+    setChainingInput(''); setChainingFeedback('');
+    setMessages([{ id: 1, role: 'ai', content: '你好！關於這句翻譯，你的初步嘗試是什麼呢？' }]);
+  }, [currentQuestion, mode]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 1. 處理提示鏈模式提交
+  // 1. 處理提示鏈模式提交 (Step 4 最終語法評估)
   const handleChainingSubmit = async () => {
     if (!chainingInput.trim()) return;
     setIsChainingLoading(true); setChainingFeedback('');
@@ -88,7 +131,7 @@ function App() {
       // 偷藏一句提示，讓 AI 一開始就知道現在學生抽到什麼題目
       if (historyToSend.length > 0 && historyToSend[0].role === 'model') {
         historyToSend.unshift({
-          role: 'user',
+          role: 'user', 
           content: `老師好，我正在練習英文翻譯，今天的題目是：「${question}」。請用語境引導我。`
         });
       }
@@ -101,7 +144,7 @@ function App() {
       if (data.status === 'success') {
         const aiMsg = { id: Date.now() + 1, role: 'ai', content: data.reply };
         setMessages(prev => [...prev, aiMsg]);
-        handleLog('Socratic', [new Date().toLocaleString(), '對話內容', inputValue, data.reply]);
+        handleLog('Questions', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
       }
     } catch (err) { alert("連線發生錯誤"); }
     setIsSocraticLoading(false);
@@ -120,13 +163,12 @@ function App() {
       if (evalData.status === 'success') {
         setMasteryData(evalData.data);
         setMasteryStatus('Revise');
-        handleLog('Mastery', [new Date().toLocaleString(), question, masteryInput, evalData.data.score]);
+        handleLog('Questions', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
       }
     } catch (error) { alert("連線發生錯誤"); }
     setIsMasteryLoading(false);
   };
 
-  // --- 視覺部分保持原樣 ---
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans">
       <div className="max-w-4xl mx-auto">
@@ -158,36 +200,133 @@ function App() {
             <h2 className="text-white text-xl mt-2">{question}</h2>
           </div>
 
+          {/* 🌟 4階段提示鏈模式介面 🌟 */}
           {mode === 'chaining' && (
             <div className="animate-in fade-in duration-500">
               <div className="flex gap-2 mb-6">
-                {[1, 2, 3].map(i => <div key={i} className={`h-2 flex-1 rounded-full ${step >= i ? 'bg-blue-500' : 'bg-slate-100'}`} />)}
+                {[1, 2, 3, 4].map(i => <div key={i} className={`h-2 flex-1 rounded-full transition-all ${step >= i ? 'bg-blue-500' : 'bg-slate-100'}`} />)}
               </div>
-              {step === 1 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
-                    <strong>Step 1: 識別句構</strong><br />請先找出本句的「主詞」與「動詞」。
+
+              {/* Step 1: 識別句構 */}
+              {step >= 1 && (
+                <div className={`space-y-4 mb-8 ${step !== 1 && 'opacity-60 grayscale cursor-not-allowed pointer-events-none'}`}>
+                  <div className="bg-blue-50 p-4 rounded-xl text-blue-800 border-l-4 border-blue-500 font-medium text-sm">
+                    <strong>Step 1: 識別句構</strong><br />{chainingData.step1Q}
                   </div>
-                  <input type="text" placeholder="例如：想像和創意 / 是" className="w-full border-2 p-4 rounded-xl outline-none" />
-                  <button onClick={() => setStep(2)} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700">下一步</button>
+                  <div className="grid gap-2">
+                    {chainingData.step1Opt.map(opt => {
+                      const code = opt.trim().substring(0, 1);
+                      const isSelected = step1AnsCode.toUpperCase() === code.toUpperCase();
+                      return (
+                        <button key={opt}
+                          onClick={() => setStep1AnsCode(code)}
+                          className={`p-4 text-left border-2 rounded-xl transition font-medium ${isSelected ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-blue-300'}`}>
+                          {opt.trim()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {step === 1 && (
+                     <div className="pt-2">
+                       <button onClick={() => {
+                          if (step1AnsCode.toUpperCase() === chainingData.step1Ans.trim().toUpperCase()) {
+                            setStep1Status('pass'); setStep(2);
+                          } else { setStep1Status('fail'); }
+                       }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證結構</button>
+                       {step1Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 答錯囉，請再想想看主詞和動詞的搭配！</p>}
+                     </div>
+                  )}
                 </div>
               )}
-              {step === 2 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
-                    <strong>Step 2: 選擇詞彙</strong><br />關鍵字：Imagination, Creativity, Driving force.
+
+              {/* Step 2: 時態判斷 */}
+              {step >= 2 && (
+                <div className={`space-y-4 mb-8 animate-in slide-in-from-top-4 ${step !== 2 && 'opacity-60 grayscale cursor-not-allowed pointer-events-none'}`}>
+                  <div className="bg-blue-50 p-4 rounded-xl text-blue-800 border-l-4 border-blue-500 font-medium text-sm">
+                    <strong>Step 2: 時態判斷</strong><br />{chainingData.step2Q}
                   </div>
-                  <button onClick={() => setStep(3)} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700">進入語法組合</button>
+                  <div className="grid gap-2">
+                    {chainingData.step2Opt.map(opt => {
+                      const code = opt.trim().substring(0, 1);
+                      const isSelected = step2AnsCode.toUpperCase() === code.toUpperCase();
+                      return (
+                        <button key={opt}
+                          onClick={() => setStep2AnsCode(code)}
+                          className={`p-4 text-left border-2 rounded-xl transition font-medium ${isSelected ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-100 hover:border-blue-300'}`}>
+                          {opt.trim()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {step === 2 && (
+                     <div className="pt-2">
+                       <button onClick={() => {
+                          if (step2AnsCode.toUpperCase() === chainingData.step2Ans.trim().toUpperCase()) {
+                            setStep2Status('pass'); setStep(3);
+                          } else { setStep2Status('fail'); }
+                       }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證時態</button>
+                       {step2Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 時態不對喔，想想看它是事實還是發生的事情？</p>}
+                     </div>
+                  )}
                 </div>
               )}
-              {step === 3 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
-                    <strong>Step 3: 語法組合</strong><br />請嘗試拼湊完整翻譯，注意文法一致。
+
+              {/* Step 3: 核心字彙填空 */}
+              {step >= 3 && (
+                <div className={`space-y-4 mb-8 animate-in slide-in-from-top-4 ${step !== 3 && 'opacity-60 grayscale cursor-not-allowed pointer-events-none'}`}>
+                  <div className="bg-blue-50 p-4 rounded-xl text-blue-800 border-l-4 border-blue-500 font-medium text-sm">
+                    <strong>Step 3: 核心字彙</strong><br />請根據前面獲得的觀念，將單字補齊完成翻譯骨架。
                   </div>
-                  <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 p-4 rounded-xl outline-none" placeholder="在此輸入您的整句翻譯..." />
-                  {chainingFeedback && <div className="bg-green-50 p-4 rounded-xl text-green-800 border border-green-200 text-sm"><strong>AI 建議：</strong>{chainingFeedback}</div>}
-                  <button onClick={handleChainingSubmit} disabled={isChainingLoading} className="w-full bg-green-600 text-white p-4 rounded-xl font-bold">{isChainingLoading ? "分析中..." : "提交分析"}</button>
+                  <div className="text-lg leading-relaxed border-2 border-slate-100 p-8 rounded-2xl bg-slate-50 shadow-inner font-medium text-slate-700">
+                    {chainingData.step3Tpl.split('[blank]').map((part, i, arr) => (
+                       <span key={i}>
+                          {part}
+                          {i < arr.length - 1 && (
+                            <input type="text"
+                              value={blankInputs[i] || ''}
+                              onChange={e => {
+                                const newInputs = [...blankInputs];
+                                newInputs[i] = e.target.value;
+                                setBlankInputs(newInputs);
+                              }}
+                              placeholder="?"
+                              className="mx-2 w-28 border-b-4 border-slate-300 focus:border-blue-500 outline-none text-center text-blue-600 font-bold bg-transparent transition-colors"
+                            />
+                          )}
+                       </span>
+                    ))}
+                  </div>
+                  {step === 3 && (
+                    <div className="pt-2">
+                       <button onClick={() => {
+                          let pass = true;
+                          for(let i=0; i<chainingData.step3Ans.length; i++){
+                             const typed = (blankInputs[i] || '').trim().toLowerCase();
+                             const ans = chainingData.step3Ans[i].trim().toLowerCase();
+                             // Allow slight flexibility by simply ensuring the word matches
+                             if (typed !== ans && !ans.includes(typed)) pass = false;
+                             if (!typed) pass = false;
+                          }
+                          if(pass) { setStep3Status('pass'); setStep(4); }
+                          else setStep3Status('fail');
+                       }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證拼字</button>
+                       {step3Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 拼字有誤或有缺漏，加油再試一次！</p>}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: 組合與潤飾 */}
+              {step === 4 && (
+                <div className="space-y-4 animate-in slide-in-from-top-4">
+                  <div className="bg-blue-50 p-4 rounded-xl text-blue-800 border-l-4 border-blue-500 text-sm">
+                    <strong>Step 4: 語法組合</strong><br />你已蒐集了所有這句翻譯需要的要素！請將它們全部組合起來，寫下最完美的翻譯。
+                  </div>
+                  <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 border-slate-200 p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-medium text-slate-700" placeholder="在此輸入您的最終整句翻譯..." />
+                  {chainingFeedback && <div className="bg-green-50 p-5 rounded-xl text-green-800 border-2 border-green-200 text-sm leading-relaxed">💡 <strong>AI 最終點評：</strong><br/>{chainingFeedback}</div>}
+                  <button onClick={handleChainingSubmit} disabled={isChainingLoading} className="w-full bg-green-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition shadow-md shadow-green-100 disabled:opacity-70 disabled:cursor-not-allowed">
+                    {isChainingLoading ? "AI 嚴格分析中..." : "🚀 提交語法分析 (此步驟將耗費 1 次請求額度)"}
+                  </button>
                 </div>
               )}
             </div>
@@ -206,7 +345,7 @@ function App() {
                     </div>
                   </div>
                 ))}
-                {isSocraticLoading && <div className="text-xs text-slate-400 ml-14 animate-pulse">導師正在思考...</div>}
+                {isSocraticLoading && <div className="text-xs text-slate-400 ml-14 animate-pulse">正在思考...</div>}
                 <div ref={chatEndRef} />
               </div>
               <div className="relative flex gap-2 pt-4 border-t border-slate-100">
@@ -226,6 +365,7 @@ function App() {
                   </button>
                 ))}
               </div>
+              
               {masteryStatus === 'Report' && (
                 <div className="space-y-6">
                   <textarea value={masteryInput} onChange={(e) => setMasteryInput(e.target.value)} className="w-full border-2 p-4 rounded-2xl h-32 outline-none" placeholder="輸入初譯..." />
@@ -241,13 +381,13 @@ function App() {
                       <div className="bg-emerald-50 p-4 rounded-xl text-emerald-700 text-sm">🌟 <strong>優點：</strong>{masteryData.good_points.join('、')}</div>
                       <div className="bg-blue-50 p-4 rounded-xl text-blue-800 font-medium">✨ <strong>參考答案：</strong>{masteryData.standard_answer}</div>
                     </>
-                  ) : <div className="py-20">尚未有評分。</div>}
+                  ) : <div className="py-20 text-center text-slate-500">尚未有評分。</div>}
                 </div>
               )}
               {masteryStatus === 'Reflect' && (
                 <div className="space-y-4 text-left">
-                  <div className="bg-purple-50 p-5 rounded-2xl border-l-8 border-purple-500">你學到了什麼以前沒注意的文法點？</div>
-                  <textarea className="w-full border-2 p-4 rounded-2xl h-32" placeholder="紀錄你的心得..." />
+                  <div className="bg-purple-50 p-5 rounded-2xl border-l-8 border-purple-500 text-purple-800 font-medium">你學到了什麼以前沒注意的文法點？</div>
+                  <textarea className="w-full border-2 p-4 rounded-2xl h-32 outline-none focus:border-purple-300" placeholder="紀錄你的心得..." />
                 </div>
               )}
             </div>
@@ -255,9 +395,9 @@ function App() {
 
           {mode === 'home' && (
             <div className="text-center py-20">
-              <div className="text-7xl mb-4">🚀</div>
-              <h3 className="text-xl font-bold">準備好開始學習了嗎？</h3>
-              <p className="text-slate-400 max-w-sm mx-auto">請從上方選擇一個模式</p>
+              <div className="text-7xl mb-4 animate-bounce">🚀</div>
+              <h3 className="text-2xl font-bold text-slate-800">準備好開始學習了嗎？</h3>
+              <p className="text-slate-500 mt-2 max-w-sm mx-auto">請從上方選擇一個過關模式</p>
             </div>
           )}
         </main>
