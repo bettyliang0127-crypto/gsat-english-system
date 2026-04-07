@@ -11,7 +11,7 @@ function App() {
   // --- 🔧 修復抓題：改為動態獲取 ---
   const [currentQuestion, setCurrentQuestion] = useState(null);
   useEffect(() => {
-    fetch(${API_BASE}/api/questions)
+    fetch(`${API_BASE}/api/questions`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' && data.data.length > 0) {
