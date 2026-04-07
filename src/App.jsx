@@ -29,7 +29,7 @@ function App() {
   // ☁️ 通用日誌函式：確保寫入 Google Sheets 成功
   const handleLog = async (sheetName, rowData) => {
     try {
-      await fetch(${API_BASE}/api/log, {
+      await fetch(`${API_BASE}/api/log`, {
         method: "POST",
         headers: { "Authorization": "Bearer 12345", "Content-Type": "application/json" },
         body: JSON.stringify({ "sheet_name": sheetName, "row_data": rowData })
@@ -62,7 +62,7 @@ function App() {
     if (!chainingInput.trim()) return;
     setIsChainingLoading(true); setChainingFeedback('');
     try {
-      const response = await fetch(${API_BASE}/api/eval_chaining, {
+      const response = await fetch(`${API_BASE}/api/eval_chaining`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question, input: chainingInput })
       });
@@ -84,7 +84,7 @@ function App() {
       const historyToSend = newMessages.map(m => ({
         role: m.role === 'user' ? 'user' : 'model', content: m.content
       }));
-      const response = await fetch(${API_BASE}/api/chat, {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ history: historyToSend })
       });
@@ -103,7 +103,7 @@ function App() {
     if (!masteryInput.trim() || isMasteryLoading) return;
     setIsMasteryLoading(true);
     try {
-      const evalRes = await fetch(${API_BASE}/api/eval_mastery, {
+      const evalRes = await fetch(`${API_BASE}/api/eval_mastery`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question, input: masteryInput })
       });
