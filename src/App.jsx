@@ -1,80 +1,144 @@
 import { useState, useEffect, useRef } from 'react'
 
+const API_BASE = "https://learn-english-wa5d.onrender.com";
+
 function App() {
   const [mode, setMode] = useState('home');
   const [step, setStep] = useState(1);
   const [masteryStatus, setMasteryStatus] = useState('Report');
+
+  const question = "人類的想像和創意是科技進步最大的驅動力。";
 
   // --- 蘇格拉底模式專用狀態 ---
   const [messages, setMessages] = useState([
     { id: 1, role: 'ai', content: '你好！關於這句翻譯，你的初步嘗試是什麼呢？' }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [isSocraticLoading, setIsSocraticLoading] = useState(false);
   const chatEndRef = useRef(null); 
 
   // --- 精熟模式專用輸入狀態 ---
   const [masteryInput, setMasteryInput] = useState('');
+  const [masteryData, setMasteryData] = useState(null);
+  const [isMasteryLoading, setIsMasteryLoading] = useState(false);
+
+  // --- 提示鏈模式專用狀態 ---
+  const [chainingInput, setChainingInput] = useState('');
+  const [chainingFeedback, setChainingFeedback] = useState('');
+  const [isChainingLoading, setIsChainingLoading] = useState(false);
 
   // 自動捲動到底部
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // --- 測試發送至 Google Sheets 的函式 ---
-  const testSubmitToSheets = () => {
-    if (!masteryInput.trim()) {
-      alert("請先輸入內容再測試發送！");
-      return;
+
+  // 1. 處理提示鏈模式提交
+  const handleChainingSubmit = async () => {
+    if (!chainingInput.trim()) return;
+    setIsChainingLoading(true);
+    setChainingFeedback('');
+    try {
+      const response = await fetch(`${API_BASE}/api/eval_chaining`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, input: chainingInput })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        setChainingFeedback(data.feedback);
+      } else {
+        alert("錯誤: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("連線發生錯誤");
     }
-
-    const value1 = new Date().toLocaleString(); // 時間戳記
-    const value2 = "精熟模式初譯測試"; // 分類
-    const value3 = masteryInput; // 學生輸入內容
-
-    fetch("https://learn-english-wa5d.onrender.com", {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer 12345", 
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            "row_data": [value1, value2, value3] 
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.status === "success"){
-            alert("資料新增成功！請馨勻確認 Google Sheets。");
-            console.log("後端回應:", data);
-        } else {
-            alert("錯誤: " + data.message);
-        }
-    })
-    .catch(error => {
-      alert("連線發生錯誤，請檢查 Flask 是否啟動。");
-      console.error("連線發生錯誤:", error);
-    });
+    setIsChainingLoading(false);
   };
 
-  // 處理蘇格拉底模式發送訊息邏輯
-  const handleSendSocratic = () => {
-    if (!inputValue.trim()) return;
+
+  // 2. 處理蘇格拉底模式發送訊息邏輯
+  const handleSendSocratic = async () => {
+    if (!inputValue.trim() || isSocraticLoading) return;
 
     const userMsg = { id: Date.now(), role: 'user', content: inputValue };
-    setMessages(prev => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInputValue('');
+    setIsSocraticLoading(true);
 
-    setTimeout(() => {
-      const aiMsg = { 
-        id: Date.now() + 1, 
-        role: 'ai', 
-        content: '這是一個很好的嘗試！但注意到「想像」與「創意」是兩個主體，動詞用單數 is 真的合適嗎？' 
-      };
-      setMessages(prev => [...prev, aiMsg]);
-    }, 1000);
+    try {
+      const historyToSend = newMessages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        content: m.content
+      }));
+
+      const response = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ history: historyToSend })
+      });
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        const aiMsg = { id: Date.now() + 1, role: 'ai', content: data.reply };
+        setMessages(prev => [...prev, aiMsg]);
+      } else {
+        alert("錯誤: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("連線發生錯誤");
+    }
+    setIsSocraticLoading(false);
   };
 
-  const question = "人類的想像和創意是科技進步最大的驅動力。";
+
+  // 3. 處理精熟模式提交
+  const handleMasterySubmit = async () => {
+    if (!masteryInput.trim()) {
+      alert("請先輸入內容！");
+      return;
+    }
+    setIsMasteryLoading(true);
+
+    try {
+      // 取得 AI 嚴格評估結果
+      const evalRes = await fetch(`${API_BASE}/api/eval_mastery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, input: masteryInput })
+      });
+      const evalData = await evalRes.json();
+      
+      if (evalData.status === 'success') {
+        setMasteryData(evalData.data);
+        setMasteryStatus('Revise'); // 切換到 Revise 顯示結果
+        
+        // 可選：記錄到 Google Sheets (將表單名稱改為你在 app.py 裡的對應 Sheet)
+        // 注意：這裡假設 Log 功能只需要記錄簡單資訊
+        fetch(`${API_BASE}/api/log`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer 12345", 
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "sheet_name": "Questions", 
+                "row_data": [new Date().toLocaleString(), "精熟模式", masteryInput, `分數:${evalData.data.score}`] 
+            })
+        }).catch(e => console.log("Google sheet log failed", e));
+
+      } else {
+        alert("錯誤: " + evalData.message);
+      }
+    } catch (error) {
+      alert("連線發生錯誤");
+      console.error(error);
+    }
+    setIsMasteryLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans">
@@ -143,8 +207,26 @@ function App() {
                   <div className="bg-blue-50 p-4 rounded-xl text-blue-700 border-l-4 border-blue-500 text-sm">
                     <strong>Step 3: 語法組合</strong><br/>請組合整句，注意最高級用法。
                   </div>
-                  <textarea rows="4" className="w-full border-2 p-4 rounded-xl focus:ring-2 ring-blue-200 outline-none" placeholder="在此輸入您的整句翻譯..."></textarea>
-                  <button className="w-full bg-green-600 text-white p-4 rounded-xl font-bold hover:bg-green-700 transition">提交並分析成果</button>
+                  <textarea 
+                    value={chainingInput}
+                    onChange={e => setChainingInput(e.target.value)}
+                    rows="4" 
+                    className="w-full border-2 p-4 rounded-xl focus:ring-2 ring-blue-200 outline-none" 
+                    placeholder="在此輸入您的整句翻譯..."></textarea>
+                  
+                  {chainingFeedback && (
+                    <div className="bg-green-50 p-4 rounded-xl text-green-800 border border-green-200 animate-in fade-in">
+                      <strong>💡 AI 助教回饋：</strong><br/>
+                      <p className="mt-2 text-sm">{chainingFeedback}</p>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={handleChainingSubmit}
+                    disabled={isChainingLoading}
+                    className="w-full bg-green-600 text-white p-4 rounded-xl font-bold hover:bg-green-700 transition disabled:opacity-70 disabled:cursor-not-allowed">
+                    {isChainingLoading ? "分析中..." : "提交並分析成果"}
+                  </button>
                 </div>
               )}
             </div>
@@ -168,6 +250,20 @@ function App() {
                     </div>
                   </div>
                 ))}
+                
+                {isSocraticLoading && (
+                  <div className="flex items-start gap-4 w-full flex-row animate-in slide-in-from-bottom-2 duration-300">
+                    <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold shadow-sm bg-slate-800 text-[10px]">
+                      導師
+                    </div>
+                    <div className="p-4 rounded-2xl shadow-sm border max-w-[80%] bg-emerald-50 text-emerald-800 border-emerald-100 rounded-tl-none mr-auto flex items-center gap-2">
+                       <span className="animate-pulse">●</span>
+                       <span className="animate-pulse animation-delay-200">●</span>
+                       <span className="animate-pulse animation-delay-400">●</span>
+                    </div>
+                  </div>
+                )}
+
                 <div ref={chatEndRef} />
               </div>
 
@@ -179,9 +275,15 @@ function App() {
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendSocratic()}
                     placeholder="輸入您的修正或問題..." 
-                    className="flex-1 border-2 border-slate-200 p-4 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 transition-all"
+                    disabled={isSocraticLoading}
+                    className="flex-1 border-2 border-slate-200 p-4 rounded-2xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 transition-all disabled:bg-slate-50"
                   />
-                  <button onClick={handleSendSocratic} className="bg-emerald-600 text-white px-6 rounded-2xl hover:bg-emerald-700 transition font-bold">發送</button>
+                  <button 
+                    onClick={handleSendSocratic} 
+                    disabled={isSocraticLoading}
+                    className="bg-emerald-600 text-white px-6 rounded-2xl hover:bg-emerald-700 transition font-bold disabled:opacity-70 disabled:cursor-not-allowed">
+                    發送
+                  </button>
                 </div>
               </div>
             </div>
@@ -201,28 +303,73 @@ function App() {
               
               {masteryStatus === 'Report' && (
                 <div className="space-y-6 py-4 animate-in fade-in">
-                  <div className="text-slate-500 text-sm mb-4 italic">請輸入初譯以開始精熟挑戰，這將測試發送至 Google Sheets</div>
+                  <div className="text-slate-500 text-sm mb-4 italic">請輸入完整翻譯，系統將進行嚴格閱卷，並紀錄至資料庫</div>
                   <textarea 
                     value={masteryInput}
                     onChange={(e) => setMasteryInput(e.target.value)}
-                    className="w-full border-2 p-4 rounded-2xl focus:ring-4 focus:ring-purple-50 focus:border-purple-400 outline-none transition-all h-32"
+                    disabled={isMasteryLoading}
+                    className="w-full border-2 p-4 rounded-2xl focus:ring-4 focus:ring-purple-50 focus:border-purple-400 outline-none transition-all h-32 disabled:bg-slate-50"
                     placeholder="在此輸入您的完整翻譯..."
                   ></textarea>
                   <button 
-                    onClick={testSubmitToSheets}
-                    className="w-full bg-purple-600 text-white p-4 rounded-2xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-100 transition-all flex items-center justify-center gap-2"
+                    onClick={handleMasterySubmit}
+                    disabled={isMasteryLoading}
+                    className="w-full bg-purple-600 text-white p-4 rounded-2xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-100 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    🚀 測試發送至雲端表單
+                    {isMasteryLoading ? "評估中請稍後..." : "🚀 提交嚴格閱卷"}
                   </button>
                 </div>
               )}
               
-              {masteryStatus === 'Revise' && <div className="text-purple-700 font-medium py-20 bg-purple-50 rounded-2xl border border-purple-100">系統偵測到語法不夠精準，請參考 RAG 標準修正。</div>}
+              {masteryStatus === 'Revise' && (
+                <div className="text-left space-y-4 animate-in fade-in">
+                  {!masteryData ? (
+                    <div className="text-purple-700 text-center font-medium py-20 bg-purple-50 rounded-2xl border border-purple-100">
+                      尚未有評分紀錄，請先在 Report 區塊送出答案。
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-4 items-center mb-6">
+                        <div className="w-16 h-16 flex items-center justify-center text-3xl font-black text-purple-600 border-4 border-purple-200 bg-purple-50 rounded-full">
+                          {masteryData.score}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-xl text-slate-800">總體評分</h3>
+                          <p className="text-slate-500 text-sm">依據大考中心標準嚴格評估</p>
+                        </div>
+                      </div>
+                      
+                      {masteryData.mistakes?.length > 0 && (
+                        <div className="bg-red-50 p-5 rounded-2xl border border-red-100">
+                          <strong className="text-red-700 block mb-2">🚨 需要修正的錯誤</strong>
+                          <ul className="list-disc list-inside text-red-600 text-sm space-y-1">
+                            {masteryData.mistakes.map((m, i) => <li key={i}>{m}</li>)}
+                          </ul>
+                        </div>
+                      )}
+
+                      {masteryData.good_points?.length > 0 && (
+                        <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                          <strong className="text-emerald-700 block mb-2">✅ 寫得很好的地方</strong>
+                          <ul className="list-disc list-inside text-emerald-600 text-sm space-y-1">
+                            {masteryData.good_points.map((m, i) => <li key={i}>{m}</li>)}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
+                        <strong className="text-blue-700 block mb-2">📖 標準參考解答</strong>
+                        <p className="text-blue-800 font-medium">{masteryData.standard_answer}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               
               {masteryStatus === 'Reflect' && (
                 <div className="space-y-4 text-left animate-in slide-in-from-top-2">
                   <p className="text-slate-600 bg-purple-50 p-5 rounded-2xl border-l-8 border-purple-500 leading-relaxed">
-                    <strong>思考題：</strong> 通關成功！你認為在表達「驅動力」時，使用 <u>driving force</u> 的原因是什麼？
+                    <strong>思考題：</strong> 根據剛才的錯誤提示與參考解答，你覺得自己在句型或字彙的選擇上學到了什麼？
                   </p>
                   <textarea className="w-full border-2 p-4 rounded-2xl focus:border-purple-400 outline-none h-32" placeholder="輸入你的反思心得..."></textarea>
                 </div>
