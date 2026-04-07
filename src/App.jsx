@@ -84,6 +84,15 @@ function App() {
       const historyToSend = newMessages.map(m => ({
         role: m.role === 'user' ? 'user' : 'model', content: m.content
       }));
+
+      // 偷藏一句提示，讓 AI 一開始就知道現在學生抽到什麼題目
+      if (historyToSend.length > 0 && historyToSend[0].role === 'model') {
+        historyToSend.unshift({
+          role: 'user', 
+          content: `老師好，我正在練習英文翻譯，今天的題目是：「${question}」。請用語境引導我。`
+        });
+      }
+
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ history: historyToSend })
