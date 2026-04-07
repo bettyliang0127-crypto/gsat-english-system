@@ -257,6 +257,7 @@ function App() {
             <div className="text-center py-20">
               <div className="text-7xl mb-4">🚀</div>
               <h3 className="text-xl font-bold">準備好開始學習了嗎？</h3>
+              <p className="text-slate-400 max-w-sm mx-auto">請從上方選擇一個模式</p>
             </div>
           )}
         </main>
