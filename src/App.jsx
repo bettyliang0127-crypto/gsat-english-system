@@ -186,6 +186,12 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <header className="mb-10 text-center">
           <h1 className="text-4xl font-black text-slate-800 mb-2 leading-tight">學測英文翻譯之引導式學習系統</h1>
+          {fetchErrorMsg && (
+            <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-xl font-bold border-2 border-red-200">
+              ⚠️ 連線題庫失敗：{fetchErrorMsg}<br/>
+              <span className="text-sm font-normal">請檢查開發者工具終端機，或將此錯誤訊息告訴我。目前正在使用假資料測試。</span>
+            </div>
+          )}
         </header>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
