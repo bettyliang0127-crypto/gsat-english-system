@@ -112,6 +112,8 @@ function App() {
       const data = await response.json();
       if (data.status === 'success') {
         setChainingFeedback(data.feedback);
+        handleLog('Questions', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
+        setStep(5); // 進入結果結算畫面
       }
     } catch (err) { alert("連線發生錯誤"); }
     setIsChainingLoading(false);
@@ -317,15 +319,55 @@ function App() {
               )}
 
               {/* Step 4: 組合與潤飾 */}
-              {step === 4 && (
-                <div className="space-y-4 animate-in slide-in-from-top-4">
+              {step >= 4 && (
+                <div className={`space-y-4 mb-8 animate-in slide-in-from-top-4 ${step !== 4 && 'opacity-60 grayscale pointer-events-none'}`}>
                   <div className="bg-blue-50 p-4 rounded-xl text-blue-800 border-l-4 border-blue-500 text-sm">
                     <strong>Step 4: 語法組合</strong><br />你已蒐集了所有這句翻譯需要的要素！請將它們全部組合起來，寫下最完美的翻譯。
                   </div>
-                  <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 border-slate-200 p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-medium text-slate-700" placeholder="在此輸入您的最終整句翻譯..." />
-                  {chainingFeedback && <div className="bg-green-50 p-5 rounded-xl text-green-800 border-2 border-green-200 text-sm leading-relaxed">💡 <strong>AI 最終點評：</strong><br />{chainingFeedback}</div>}
-                  <button onClick={handleChainingSubmit} disabled={isChainingLoading} className="w-full bg-green-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition shadow-md shadow-green-100 disabled:opacity-70 disabled:cursor-not-allowed">
-                    {isChainingLoading ? "AI 嚴格分析中..." : "🚀 提交分析"}
+                  <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 border-slate-200 p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-medium text-slate-700" placeholder="在此輸入您的最終整句翻譯..." disabled={step !== 4} />
+                  {step === 4 && (
+                    <button onClick={handleChainingSubmit} disabled={isChainingLoading} className="w-full bg-green-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition shadow-md shadow-green-100 disabled:opacity-70 disabled:cursor-not-allowed">
+                      {isChainingLoading ? "AI 嚴格分析中..." : "🚀 提交分析"}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Step 5: 結算與解析 */}
+              {step === 5 && (
+                <div className="space-y-6 animate-in slide-in-from-bottom-4 pt-4 border-t border-slate-200">
+                  <div className="text-center">
+                    <div className="text-5xl mb-4 animate-bounce">🎉</div>
+                    <h3 className="text-2xl font-black text-slate-800">闖關完成！</h3>
+                    <p className="text-slate-500 mt-2">來看看 AI 助教的點評與大考中心的資料吧</p>
+                  </div>
+                  
+                  <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200 shadow-sm">
+                    <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">🤖 AI 專屬語法點評</h4>
+                    <p className="text-green-900 leading-relaxed font-medium">{chainingFeedback}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                      <h4 className="font-bold text-blue-800 mb-2">✨ 大考中心標準解答</h4>
+                      <p className="text-blue-900 font-medium">{currentQuestion?.Model_Answer || "資料表中未提供 (Model_Answer)"}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100">
+                        <h4 className="font-bold text-purple-800 mb-2">📋 閱卷評分標準</h4>
+                        <p className="text-purple-900 text-sm whitespace-pre-wrap">{currentQuestion?.Criteria || "資料表中未提供 (Criteria)"}</p>
+                      </div>
+                      
+                      <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+                        <h4 className="font-bold text-red-800 mb-2">⚠️ 考生常見錯誤</h4>
+                        <p className="text-red-900 text-sm whitespace-pre-wrap">{currentQuestion?.Common_Errors || "資料表中未提供 (Common_Errors)"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button onClick={() => { setMode('home'); }} className="w-full bg-slate-800 text-white p-4 rounded-xl font-bold hover:bg-slate-900 transition mt-4 shadow-lg">
+                    回到首頁抽下一題
                   </button>
                 </div>
               )}
