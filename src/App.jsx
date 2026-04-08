@@ -33,7 +33,7 @@ function App() {
         setFetchErrorMsg(e.toString());
         // 如果抓不到，使用備援假資料 (包含試算表的新欄位模擬)
         setCurrentQuestion({
-          Chinese_Prompt: "人類的想像和創意是科技進步最大的驅動力。",
+          Chinese_Prompt: "123456789。",
           Step1_Question: "請問這句話的核心「主詞」與「動詞」結構為何？",
           Step1_Options: "A. 科技進步 / 是; B. 想像和創意 / 是; C. 最大 / 驅動力",
           Step1_Ans: "B",
