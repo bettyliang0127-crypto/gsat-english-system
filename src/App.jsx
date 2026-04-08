@@ -22,7 +22,7 @@ function App() {
       })
       .catch(e => {
         // 如果抓不到，使用備援假資料 (包含試算表的新欄位模擬)
-        setCurrentQuestion({ 
+        setCurrentQuestion({
           Chinese_Prompt: "人類的想像和創意是科技進步最大的驅動力。",
           Step1_Question: "請問這句話的核心「主詞」與「動詞」結構為何？",
           Step1_Options: "A. 科技進步 / 是; B. 想像和創意 / 是; C. 最大 / 驅動力",
@@ -67,7 +67,7 @@ function App() {
     step1Q: currentQuestion?.Step1_Question || "本句的主詞與動詞為何？",
     step1Opt: currentQuestion?.Step1_Options ? currentQuestion.Step1_Options.split(';') : ["A. 現代科技 / 是", "B. 想像和創意 / 是", "C. 驅動力 / 是"],
     step1Ans: currentQuestion?.Step1_Ans || "B",
-    
+
     step2Q: currentQuestion?.Step2_Question || "這句話應該使用什麼時態？",
     step2Opt: currentQuestion?.Step2_Options ? currentQuestion.Step2_Options.split(';') : ["A. 過去單純式", "B. 現在簡單式", "C. 現在完成式"],
     step2Ans: currentQuestion?.Step2_Ans || "B",
@@ -131,7 +131,7 @@ function App() {
       // 偷藏一句提示，讓 AI 一開始就知道現在學生抽到什麼題目
       if (historyToSend.length > 0 && historyToSend[0].role === 'model') {
         historyToSend.unshift({
-          role: 'user', 
+          role: 'user',
           content: `老師好，我正在練習英文翻譯，今天的題目是：「${question}」。請用語境引導我。`
         });
       }
@@ -227,14 +227,14 @@ function App() {
                     })}
                   </div>
                   {step === 1 && (
-                     <div className="pt-2">
-                       <button onClick={() => {
-                          if (step1AnsCode.toUpperCase() === chainingData.step1Ans.trim().toUpperCase()) {
-                            setStep1Status('pass'); setStep(2);
-                          } else { setStep1Status('fail'); }
-                       }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證結構</button>
-                       {step1Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 答錯囉，請再想想看主詞和動詞的搭配！</p>}
-                     </div>
+                    <div className="pt-2">
+                      <button onClick={() => {
+                        if (step1AnsCode.toUpperCase() === chainingData.step1Ans.trim().toUpperCase()) {
+                          setStep1Status('pass'); setStep(2);
+                        } else { setStep1Status('fail'); }
+                      }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證結構</button>
+                      {step1Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 答錯囉，請再想想看主詞和動詞的搭配！</p>}
+                    </div>
                   )}
                 </div>
               )}
@@ -259,14 +259,14 @@ function App() {
                     })}
                   </div>
                   {step === 2 && (
-                     <div className="pt-2">
-                       <button onClick={() => {
-                          if (step2AnsCode.toUpperCase() === chainingData.step2Ans.trim().toUpperCase()) {
-                            setStep2Status('pass'); setStep(3);
-                          } else { setStep2Status('fail'); }
-                       }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證時態</button>
-                       {step2Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 時態不對喔，想想看它是事實還是發生的事情？</p>}
-                     </div>
+                    <div className="pt-2">
+                      <button onClick={() => {
+                        if (step2AnsCode.toUpperCase() === chainingData.step2Ans.trim().toUpperCase()) {
+                          setStep2Status('pass'); setStep(3);
+                        } else { setStep2Status('fail'); }
+                      }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證時態</button>
+                      {step2Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 時態不對喔，想想看它是事實還是發生的事情？</p>}
+                    </div>
                   )}
                 </div>
               )}
@@ -279,38 +279,38 @@ function App() {
                   </div>
                   <div className="text-lg leading-relaxed border-2 border-slate-100 p-8 rounded-2xl bg-slate-50 shadow-inner font-medium text-slate-700">
                     {chainingData.step3Tpl.split('[blank]').map((part, i, arr) => (
-                       <span key={i}>
-                          {part}
-                          {i < arr.length - 1 && (
-                            <input type="text"
-                              value={blankInputs[i] || ''}
-                              onChange={e => {
-                                const newInputs = [...blankInputs];
-                                newInputs[i] = e.target.value;
-                                setBlankInputs(newInputs);
-                              }}
-                              placeholder="?"
-                              className="mx-2 w-28 border-b-4 border-slate-300 focus:border-blue-500 outline-none text-center text-blue-600 font-bold bg-transparent transition-colors"
-                            />
-                          )}
-                       </span>
+                      <span key={i}>
+                        {part}
+                        {i < arr.length - 1 && (
+                          <input type="text"
+                            value={blankInputs[i] || ''}
+                            onChange={e => {
+                              const newInputs = [...blankInputs];
+                              newInputs[i] = e.target.value;
+                              setBlankInputs(newInputs);
+                            }}
+                            placeholder="?"
+                            className="mx-2 w-28 border-b-4 border-slate-300 focus:border-blue-500 outline-none text-center text-blue-600 font-bold bg-transparent transition-colors"
+                          />
+                        )}
+                      </span>
                     ))}
                   </div>
                   {step === 3 && (
                     <div className="pt-2">
-                       <button onClick={() => {
-                          let pass = true;
-                          for(let i=0; i<chainingData.step3Ans.length; i++){
-                             const typed = (blankInputs[i] || '').trim().toLowerCase();
-                             const ans = chainingData.step3Ans[i].trim().toLowerCase();
-                             // Allow slight flexibility by simply ensuring the word matches
-                             if (typed !== ans && !ans.includes(typed)) pass = false;
-                             if (!typed) pass = false;
-                          }
-                          if(pass) { setStep3Status('pass'); setStep(4); }
-                          else setStep3Status('fail');
-                       }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證拼字</button>
-                       {step3Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 拼字有誤或有缺漏，加油再試一次！</p>}
+                      <button onClick={() => {
+                        let pass = true;
+                        for (let i = 0; i < chainingData.step3Ans.length; i++) {
+                          const typed = (blankInputs[i] || '').trim().toLowerCase();
+                          const ans = chainingData.step3Ans[i].trim().toLowerCase();
+                          // Allow slight flexibility by simply ensuring the word matches
+                          if (typed !== ans && !ans.includes(typed)) pass = false;
+                          if (!typed) pass = false;
+                        }
+                        if (pass) { setStep3Status('pass'); setStep(4); }
+                        else setStep3Status('fail');
+                      }} className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-100">驗證拼字</button>
+                      {step3Status === 'fail' && <p className="text-red-500 text-sm mt-3 font-medium text-center animate-bounce">❌ 拼字有誤或有缺漏，加油再試一次！</p>}
                     </div>
                   )}
                 </div>
@@ -323,9 +323,9 @@ function App() {
                     <strong>Step 4: 語法組合</strong><br />你已蒐集了所有這句翻譯需要的要素！請將它們全部組合起來，寫下最完美的翻譯。
                   </div>
                   <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 border-slate-200 p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-medium text-slate-700" placeholder="在此輸入您的最終整句翻譯..." />
-                  {chainingFeedback && <div className="bg-green-50 p-5 rounded-xl text-green-800 border-2 border-green-200 text-sm leading-relaxed">💡 <strong>AI 最終點評：</strong><br/>{chainingFeedback}</div>}
+                  {chainingFeedback && <div className="bg-green-50 p-5 rounded-xl text-green-800 border-2 border-green-200 text-sm leading-relaxed">💡 <strong>AI 最終點評：</strong><br />{chainingFeedback}</div>}
                   <button onClick={handleChainingSubmit} disabled={isChainingLoading} className="w-full bg-green-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition shadow-md shadow-green-100 disabled:opacity-70 disabled:cursor-not-allowed">
-                    {isChainingLoading ? "AI 嚴格分析中..." : "🚀 提交語法分析 (此步驟將耗費 1 次請求額度)"}
+                    {isChainingLoading ? "AI 嚴格分析中..." : "🚀 提交分析"}
                   </button>
                 </div>
               )}
@@ -365,7 +365,7 @@ function App() {
                   </button>
                 ))}
               </div>
-              
+
               {masteryStatus === 'Report' && (
                 <div className="space-y-6">
                   <textarea value={masteryInput} onChange={(e) => setMasteryInput(e.target.value)} className="w-full border-2 p-4 rounded-2xl h-32 outline-none" placeholder="輸入初譯..." />
