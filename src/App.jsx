@@ -11,16 +11,26 @@ function App() {
 
   // --- 🔧 修復抓題：改為動態獲取 ---
   const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [fetchErrorMsg, setFetchErrorMsg] = useState('');
   useEffect(() => {
     fetch(`${API_BASE}/api/questions`)
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`連線失敗 (${res.status}): ${text.substring(0, 100)}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (data.status === 'success' && data.data.length > 0) {
           // 隨機抽一題
           setCurrentQuestion(data.data[Math.floor(Math.random() * data.data.length)]);
+        } else {
+          throw new Error(data.message || "題庫為空");
         }
       })
       .catch(e => {
+        setFetchErrorMsg(e.toString());
         // 如果抓不到，使用備援假資料 (包含試算表的新欄位模擬)
         setCurrentQuestion({
           Chinese_Prompt: "人類的想像和創意是科技進步最大的驅動力。",
@@ -33,7 +43,7 @@ function App() {
           Step3_Template: "Human [blank] and [blank] are the largest [blank] of technological progress.",
           Step3_Answers: "imagination;creativity;driving force"
         });
-        console.log("正在使用備援題目");
+        console.log("正在使用備援題目", e);
       });
   }, []);
 
@@ -112,7 +122,7 @@ function App() {
       const data = await response.json();
       if (data.status === 'success') {
         setChainingFeedback(data.feedback);
-        handleLog('Questions', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
+        handleLog('Chaining', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
         setStep(5); // 進入結果結算畫面
       }
     } catch (err) { alert("連線發生錯誤"); }
@@ -146,7 +156,7 @@ function App() {
       if (data.status === 'success') {
         const aiMsg = { id: Date.now() + 1, role: 'ai', content: data.reply };
         setMessages(prev => [...prev, aiMsg]);
-        handleLog('Questions', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
+        handleLog('Socratic', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
       }
     } catch (err) { alert("連線發生錯誤"); }
     setIsSocraticLoading(false);
@@ -165,7 +175,7 @@ function App() {
       if (evalData.status === 'success') {
         setMasteryData(evalData.data);
         setMasteryStatus('Revise');
-        handleLog('Questions', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
+        handleLog('Mastery', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
       }
     } catch (error) { alert("連線發生錯誤"); }
     setIsMasteryLoading(false);
@@ -341,7 +351,7 @@ function App() {
                     <h3 className="text-2xl font-black text-slate-800">闖關完成！</h3>
                     <p className="text-slate-500 mt-2">來看看 AI 助教的點評與大考中心的資料吧</p>
                   </div>
-                  
+
                   <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200 shadow-sm">
                     <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2">🤖 AI 專屬語法點評</h4>
                     <p className="text-green-900 leading-relaxed font-medium">{chainingFeedback}</p>
@@ -358,7 +368,7 @@ function App() {
                         <h4 className="font-bold text-purple-800 mb-2">📋 閱卷評分標準</h4>
                         <p className="text-purple-900 text-sm whitespace-pre-wrap">{currentQuestion?.Criteria || "資料表中未提供 (Criteria)"}</p>
                       </div>
-                      
+
                       <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
                         <h4 className="font-bold text-red-800 mb-2">⚠️ 考生常見錯誤</h4>
                         <p className="text-red-900 text-sm whitespace-pre-wrap">{currentQuestion?.Common_Errors || "資料表中未提供 (Common_Errors)"}</p>
