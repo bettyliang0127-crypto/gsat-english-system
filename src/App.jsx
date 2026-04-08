@@ -122,7 +122,7 @@ function App() {
       const data = await response.json();
       if (data.status === 'success') {
         setChainingFeedback(data.feedback);
-        handleLog('Chaining', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
+        handleLog('Questions', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
         setStep(5); // 進入結果結算畫面
       }
     } catch (err) { alert("連線發生錯誤"); }
@@ -156,7 +156,7 @@ function App() {
       if (data.status === 'success') {
         const aiMsg = { id: Date.now() + 1, role: 'ai', content: data.reply };
         setMessages(prev => [...prev, aiMsg]);
-        handleLog('Socratic', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
+        handleLog('Questions', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
       }
     } catch (err) { alert("連線發生錯誤"); }
     setIsSocraticLoading(false);
@@ -175,7 +175,7 @@ function App() {
       if (evalData.status === 'success') {
         setMasteryData(evalData.data);
         setMasteryStatus('Revise');
-        handleLog('Mastery', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
+        handleLog('Questions', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
       }
     } catch (error) { alert("連線發生錯誤"); }
     setIsMasteryLoading(false);
