@@ -122,7 +122,7 @@ function App() {
       const data = await response.json();
       if (data.status === 'success') {
         setChainingFeedback(data.feedback);
-        handleLog('Questions', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
+        handleLog('Chaining', [new Date().toLocaleString(), `提示鏈模式: ${question}`, chainingInput, data.feedback]);
         setStep(5); // 進入結果結算畫面
       }
     } catch (err) { alert("連線發生錯誤"); }
@@ -156,7 +156,7 @@ function App() {
       if (data.status === 'success') {
         const aiMsg = { id: Date.now() + 1, role: 'ai', content: data.reply };
         setMessages(prev => [...prev, aiMsg]);
-        handleLog('Questions', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
+        handleLog('Socratic', [new Date().toLocaleString(), '蘇格拉底對話', inputValue, data.reply]);
       }
     } catch (err) { alert("連線發生錯誤"); }
     setIsSocraticLoading(false);
@@ -175,7 +175,7 @@ function App() {
       if (evalData.status === 'success') {
         setMasteryData(evalData.data);
         setMasteryStatus('Revise');
-        handleLog('Questions', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
+        handleLog('Mastery', [new Date().toLocaleString(), `精熟模式: ${question}`, masteryInput, evalData.data.score]);
       }
     } catch (error) { alert("連線發生錯誤"); }
     setIsMasteryLoading(false);
@@ -191,7 +191,7 @@ function App() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <button onClick={() => { setMode('chaining'); setStep(1); }}
             className={`p-4 rounded-2xl border-2 transition-all ${mode === 'chaining' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-white bg-white hover:border-blue-200'}`}>
-            <div className="font-bold text-blue-600">提示鏈模式</div>
+            <div className="font-bold text-blue-600">提示鏈模式1</div>
             <div className="text-xs text-slate-400">任務拆解與結構引導</div>
           </button>
           <button onClick={() => setMode('socratic')}
