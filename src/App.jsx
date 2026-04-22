@@ -343,7 +343,7 @@ function App() {
                   <textarea value={chainingInput} onChange={e => setChainingInput(e.target.value)} rows="4" className="w-full border-2 border-slate-200 p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all font-medium text-slate-700" placeholder="在此輸入您的最終整句翻譯..." disabled={step !== 4} />
                   {step === 4 && (
                     <button onClick={handleChainingSubmit} disabled={isChainingLoading} className="w-full bg-green-600 text-white p-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition shadow-md shadow-green-100 disabled:opacity-70 disabled:cursor-not-allowed">
-                      {isChainingLoading ? "AI 嚴格分析中..." : "🚀 提交分析"}
+                      {isChainingLoading ? "AI 嚴格分析中..." : "提交分析"}
                     </button>
                   )}
                 </div>
@@ -427,7 +427,7 @@ function App() {
               {masteryStatus === 'Report' && (
                 <div className="space-y-6">
                   <textarea value={masteryInput} onChange={(e) => setMasteryInput(e.target.value)} className="w-full border-2 p-4 rounded-2xl h-32 outline-none" placeholder="輸入初譯..." />
-                  <button onClick={handleMasterySubmit} disabled={isMasteryLoading} className="w-full bg-purple-600 text-white p-4 rounded-2xl font-bold">{isMasteryLoading ? "評估中..." : "🚀 提交閱卷"}</button>
+                  <button onClick={handleMasterySubmit} disabled={isMasteryLoading} className="w-full bg-purple-600 text-white p-4 rounded-2xl font-bold">{isMasteryLoading ? "評估中..." : "提交閱卷"}</button>
                 </div>
               )}
               {masteryStatus === 'Revise' && (
@@ -453,7 +453,6 @@ function App() {
 
           {mode === 'home' && (
             <div className="text-center py-20">
-              <div className="text-7xl mb-4 animate-bounce">🚀</div>
               <h3 className="text-2xl font-bold text-slate-800">準備好開始學習了嗎？</h3>
               <p className="text-slate-500 mt-2 max-w-sm mx-auto">請從上方選擇一個過關模式</p>
             </div>
